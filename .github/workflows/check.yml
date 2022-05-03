@@ -27,10 +27,7 @@ jobs:
           poetry install
       - name: Test
         run: |
-          pip install pytest
-          pytest
+          make test
       - name: Lint
         run: |
-          flake8 --jobs 4 --statistics --show-source source tests
-	        mypy source
-	        black --target-version py36 --skip-string-normalization --line-length=119 --check source tests
+          make lint
