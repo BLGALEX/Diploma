@@ -27,7 +27,6 @@ jobs:
           poetry install
       - name: Test
         run: |
-          pip install pytest
           make test
       - name: Lint
         run: |
