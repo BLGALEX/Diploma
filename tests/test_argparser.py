@@ -1,7 +1,3 @@
-import os
-from subprocess import Popen, PIPE
-
-
 def test_argsparsing():
     # path = os.path.abspath(__file__ + "/../../source/main.py")
 
