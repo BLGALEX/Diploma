@@ -1,29 +1,39 @@
 import argparse
+import os
 from ctypes import FormatError
 from pathlib import Path
-import os
+from evs.FileEstimation import FileEstimator
+
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '4'
 
 
 class Interface():
     def __init__(
         self,
         pathes: list[str | Path],
-        cnns: list[str],
-        transformers: list[str]
+        cnn: str,
+        split: bool,
+        verbose: int = 0
     ):
         self.pathes = pathes
-        self.cnns = cnns
-        self.transformers = transformers
-        self.assert_video_exists()
+        self.cnn = cnn
+        self.split = True
+        self.verbose = verbose
+        self._run_checks()
 
-    def evaluate(self):
-        print('Starting estimation of video stabilization..')
-        for cnn in self.cnns:
-            for transforer in self.transformers:
-                for path in self.pathes:
-                    pass
+    def start_evaluation(self):
+        if self.verbose > 0:
+            print('Starting estimation of video stabilization..')
+        model = FileEstimator(model_type=self.cnn, split_four=self.split, verbose=self.verbose)
+        for path in self.pathes:
+            score = model.evaluate(path)
+            print(f'{path} \n score: {score}')
 
-    def assert_video_exists(self):
+    def _run_checks(self):
+        self._assert_video_exists()
+
+    def _assert_video_exists(self):
         for video in self.pathes:
             if not os.path.exists(video):
                 raise FileNotFoundError(f'Can not find {video}')
@@ -38,8 +48,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         '-p',
-        '--path',
-        metavar='videofile',
+        '--pathes',
+        nargs='+',
+        metavar='video1.mp4',
         type=str,
         help='.mp4 file path'
     )
@@ -55,13 +66,28 @@ if __name__ == "__main__":
     parser.add_argument(
         '-e',
         '--estimation_cnn',
-        metavar='seresnet18',
+        metavar='resnet50',
         type=str,
-        default='seresnet18',
+        default='resnet50',
         help='Pretrained cnn to estimate video stabilization.'
-        ' Default seresnet18.'
-        ' Avialable: seresnet18, seresnet50, resnet50'
+        ' Default resnet50.'
+        ' Avialable: seresnet18, resnet50'
+    )
+    parser.add_argument(
+        '-v',
+        '--verbose',
+        metavar='1',
+        type=int,
+        default=1,
+        help='0 - only score, 1 - all logs'
     )
 
     args = parser.parse_args()
-    
+
+    interface = Interface(
+        pathes=args.pathes,
+        cnn=args.estimation_cnn,
+        split=args.split_video,
+        verbose=args.verbose
+    )
+    interface.start_evaluation()
